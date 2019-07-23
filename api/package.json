@@ -1,7 +1,7 @@
 {
   "name": "guest-book-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple Web API for a Guest Book",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
