@@ -1,45 +1,34 @@
 <template>
   <div class="container">
-    <div>
-      <logo />
-      <h1 class="title">
-        app
-      </h1>
-      <h2 class="subtitle">
-        Front-end for Guest Book app
-      </h2>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green"
-        >
-          Documentation
-        </a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey"
-        >
-          GitHub
-        </a>
-      </div>
-    </div>
+    <Guests :guests="guests" />
   </div>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
+import Guests from '../components/Guests'
 
 export default {
   components: {
-    Logo
+    Guests
+  },
+  data() {
+    return {
+      guests: []
+    }
+  },
+  async created() {
+    try {
+      this.guests = await this.$axios.$get('/api');
+      console.log(this.guests);
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 </script>
 
-<style>
-.container {
+<style scoped>
+/* .container {
   margin: 0 auto;
   min-height: 100vh;
   display: flex;
@@ -68,5 +57,5 @@ export default {
 
 .links {
   padding-top: 15px;
-}
+} */
 </style>
