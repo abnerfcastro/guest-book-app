@@ -10,6 +10,7 @@ services:
       - 27017
   api:
     build: ./api
+    container_name: guestbook_api
     volumes:
       - ./api:/var/www/app
     ports:
@@ -21,6 +22,19 @@ services:
       - db
     command:
       sh -c 'npm i && node server.js'
+  app:
+    build: ./app
+    container_name: guestbook_app
+    volumes:
+      - ./app:/var/www/app
+    ports:
+      - 4000:4000
+    environment:
+      - NUXT_PORT=4000
+      - NUXT_HOST=0.0.0.0
+      - GUESTBOOK_API=http://guestbook_api:3000
+    command:
+      sh -c 'npm i && npm run build && npm run start'
 
 volumes:
   guestbook_mongodb:

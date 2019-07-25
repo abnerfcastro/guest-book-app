@@ -26,9 +26,11 @@ async function start() {
     await nuxt.ready()
   }
 
+  const apiDomain = process.env.GUESTBOOK_API || 'http://localhost:3000';
+
   app.get('/api/', async (req, res) => {
     try {
-      let result = await axios.get('http://localhost:3000/guests');
+      let result = await axios.get(`${apiDomain}/guests`);
       res.status('200').json(result.data);
     } catch (error) {
       res.status('500').json({ error });
@@ -39,7 +41,7 @@ async function start() {
     const { firstname, lastname, country } = req.body;
     try {
       const newGuest = { firstname, lastname, country };
-      let result = await axios.post('http://localhost:3000/guests', newGuest);
+      let result = await axios.post(`${apiDomain}/guests`, newGuest);
       res.status('201').json(result.data);
     } catch (error) {
       console.log(error);
