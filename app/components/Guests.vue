@@ -3,9 +3,9 @@
     <p class="panel-heading">
       Guests
     </p>
-    <a class="panel-block" :key="guest.id" v-for="guest in guests">
+    <nuxt-link class="panel-block" :key="guest.id" v-for="guest in guests" :to="{ name: 'guest-id', params: { id: guest._id }}">
       {{`${guest.firstname} ${guest.lastname}`}}
-    </a>
+    </nuxt-link>
   </nav>
 </template>
 
