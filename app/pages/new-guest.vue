@@ -23,6 +23,9 @@
           <div class="control">
             <button class="button is-danger" @click.prevent="cancel">Cancel</button>
           </div>
+          <div class="control">
+            <button class="button is-info" @click.prevent="getRandom">Generate Random</button>
+          </div>
         </div>
       </form>
     </section>
@@ -30,6 +33,8 @@
 </template>
 
 <script>
+import * as _s from 'underscore.string';
+
 export default {
   data() {
     return {
@@ -58,6 +63,22 @@ export default {
       this.newGuest.firstname = '';
       this.newGuest.lastname = '';
       this.$router.push({ path: '/' });
+    },
+    async getRandom() {
+      try {
+        const response = await this.$axios.$get('https://randomuser.me/api/');
+        const guestinfo = response.results[0];
+        let { first: firstname, last: lastname } = guestinfo.name;
+
+        this.newGuest.firstname = this.capitalize(firstname);
+        this.newGuest.lastname = this.capitalize(lastname);
+        this.newGuest.country = guestinfo.nat;
+      } catch (error) {
+        this.$toast.error('Unable to generate random guest info.')
+      }
+    },
+    capitalize(str) {
+      return _s(str).trim().capitalize().value();
     }
   }
 };
