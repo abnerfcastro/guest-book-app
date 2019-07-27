@@ -5,6 +5,8 @@ const { Nuxt, Builder } = require('nuxt')
 const app = express()
 const bodyParser = require('body-parser');
 
+const GuestsRespository = require('./guest-repository');
+
 // Import and Set Nuxt.js options
 const config = require('../nuxt.config.js')
 config.dev = !(process.env.NODE_ENV === 'production')
@@ -26,12 +28,11 @@ async function start() {
     await nuxt.ready()
   }
 
-  const apiDomain = process.env.GUESTBOOK_API || 'http://localhost:3000';
 
   app.get('/api/', async (req, res) => {
     try {
-      let result = await axios.get(`${apiDomain}/guests`);
-      res.status('200').json(result.data);
+      const guests = await GuestsRespository.getAll();
+      res.status('200').json(guests);
     } catch (error) {
       res.status('500').json({ error });
     }
@@ -41,10 +42,21 @@ async function start() {
     const { firstname, lastname, country } = req.body;
     try {
       const newGuest = { firstname, lastname, country };
-      let result = await axios.post(`${apiDomain}/guests`, newGuest);
-      res.status('201').json(result.data);
+      await GuestsRespository.create(newGuest);
+      res.status('201').end();
     } catch (error) {
       console.log(error);
+      res.status('500').json({ error });
+    }
+  });
+
+  app.get('/api/:id', async (req, res) => {
+    try {
+      const id = req.params.id;
+      console.log(req.params);
+      const guest = await GuestsRespository.getById(id);
+      res.status('201').json(guest);
+    } catch (error) {
       res.status('500').json({ error });
     }
   });
