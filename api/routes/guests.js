@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const RabbitMQService = require('../utils/rabbitmq-service');
 
 const Guest = require('../models/guests');
 
@@ -37,6 +38,9 @@ router.post('/', (req, res, next) => {
     guest
         .save()
         .then(result => {
+            if (req.headers['api_key'] != 'guestbook_app') {
+                RabbitMQService.send(result);
+            }
             res.status(201).json({
                 message: 'Handling POST requests to /guests',
                 createdObject: result

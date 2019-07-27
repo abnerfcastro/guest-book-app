@@ -4,6 +4,7 @@ const axios = require('axios');
 const { Nuxt, Builder } = require('nuxt')
 const app = express()
 const bodyParser = require('body-parser');
+var amqp = require('amqplib/callback_api');
 
 const GuestsRespository = require('./guest-repository');
 
@@ -59,6 +60,25 @@ async function start() {
     } catch (error) {
       res.status('500').json({ error });
     }
+  });
+
+  amqp.connect(process.env.RABBITMQ_URL, function (err, conn) {
+    if (err) {
+      console.log('Error on creating new connection with Rabbit MQ');
+      return;
+    }
+    conn.createChannel(function (err, ch) {
+        var q = 'guestbook_app_queue';
+
+        ch.assertQueue(q, { durable: false });
+        ch.prefetch(1);
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q);
+        ch.consume(q, async function (msg) {
+            console.log(" [x] Received %s", msg.content.toString());
+            console.log('Adding RabbitMQ entry to Redis Cache');
+            await GuestsRespository.addToRedisCache(JSON.parse(msg.content.toString()));
+        }, { noAck: true });
+    });
   });
 
   // Give nuxt middleware to express

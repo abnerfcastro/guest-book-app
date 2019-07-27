@@ -20,15 +20,15 @@ module.exports = new class GuestRepository {
     }
 
     async create(guest) {
-        const result = await axios.post(`${guestbookApiDomain}/guests`, guest);
+        const result = await axios.post(`${guestbookApiDomain}/guests`, guest, {
+            headers: {
+                api_key: 'guestbook_app'
+            }
+        });
 
         if (result.data && result.data.createdObject) {
-            let guests = await RedisClient.getAsync(RedisClient.ALL_GUESTS_KEY);
-            if (guests == null) return;
-
             console.log('POST /api/ Updating Redis cache');
-            guests = [...guests, result.data.createdObject];
-            await RedisClient.setAsync(RedisClient.ALL_GUESTS_KEY, guests);
+            this.addToRedisCache(result.data.createdObject);
         }
     }
 
@@ -44,5 +44,12 @@ module.exports = new class GuestRepository {
         }
 
         return guest;
+    }
+
+    async addToRedisCache(guest) {
+        let guests = await RedisClient.getAsync(RedisClient.ALL_GUESTS_KEY);
+        if (guests == null) return;
+        guests = [...guests, guest];
+        await RedisClient.setAsync(RedisClient.ALL_GUESTS_KEY, guests);
     }
 }
