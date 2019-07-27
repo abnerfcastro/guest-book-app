@@ -4,7 +4,8 @@ const axios = require('axios');
 const { Nuxt, Builder } = require('nuxt')
 const app = express()
 const bodyParser = require('body-parser');
-var amqp = require('amqplib/callback_api');
+const amqp = require('amqplib/callback_api');
+
 
 const GuestsRespository = require('./guest-repository');
 
@@ -62,6 +63,22 @@ async function start() {
     }
   });
 
+  // Give nuxt middleware to express
+  app.use(nuxt.render)
+
+  const server = require('http').Server(app);
+
+  const io = require('socket.io')(server);
+
+  io.set('transports', ['polling']);
+  io.sockets.on('connection', function (socket) {
+    consola.log('Client connected.')
+    socket.on("disconnect", () => console.log("Client disconnected"));
+    // socket.on('subscribe', function (data) {
+    //   socket.join(data.channel);
+    // });
+  });
+
   amqp.connect(process.env.RABBITMQ_URL, function (err, conn) {
     if (err) {
       console.log('Error on creating new connection with Rabbit MQ');
@@ -77,15 +94,14 @@ async function start() {
             console.log(" [x] Received %s", msg.content.toString());
             console.log('Adding RabbitMQ entry to Redis Cache');
             await GuestsRespository.addToRedisCache(JSON.parse(msg.content.toString()));
+            io.sockets.emit('newguest', msg.content.toString());
         }, { noAck: true });
     });
   });
 
-  // Give nuxt middleware to express
-  app.use(nuxt.render)
 
   // Listen the server
-  app.listen(port, host)
+  server.listen(port, host)
   consola.ready({
     message: `Server listening on http://${host}:${port}`,
     badge: true

@@ -6,6 +6,7 @@
 
 <script>
 import Guests from '../components/Guests'
+import socketIOClient from 'socket.io-client';
 
 export default {
   components: {
@@ -13,16 +14,27 @@ export default {
   },
   data() {
     return {
-      guests: []
+      guests: [],
+      socket: {},
     }
   },
   async created() {
     try {
       this.guests = await this.$axios.$get('/api');
-      console.log(this.guests);
     } catch (error) {
       console.log(error);
     }
+  },
+  mounted() {
+    // socket
+    this.socket = socketIOClient('http://localhost:4000');
+    this.socket.on('newguest', data => {
+      this.guests.push(JSON.parse(data));
+    });
+  },
+  beforeDestroy() {
+    console.log('Disconnecting socket');
+    this.socket.disconnect();
   }
 }
 </script>
